@@ -1,0 +1,8 @@
+[package]
+name = "shoot-the-space-guys"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+bevy = { version = "0.16.1", features = ["wayland"] }
+rand = "0.9.1"
