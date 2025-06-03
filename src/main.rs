@@ -153,13 +153,8 @@ fn player_movement(
     time: Res<Time>,
 ) {
     if let Ok(mut transform) = query.single_mut() {
-        let mut direction = 0.;
-        if keyboard_input.pressed(KeyCode::ArrowLeft) {
-            direction -= 1.;
-        }
-        if keyboard_input.pressed(KeyCode::ArrowRight) {
-            direction += 1.;
-        }
+        let direction = f32::from(keyboard_input.pressed(KeyCode::ArrowRight))
+            - f32::from(keyboard_input.pressed(KeyCode::ArrowLeft));
 
         transform.translation.x += direction * PLAYER_SPEED * time.delta_secs();
         transform.translation.x = transform.translation.x.clamp(LEFT_WALL, RIGHT_WALL);
