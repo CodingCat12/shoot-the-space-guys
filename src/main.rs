@@ -78,6 +78,28 @@ struct Shield {
     hits: u32,
 }
 
+#[derive(Bundle)]
+struct ShieldBundle {
+    transform: Transform,
+    sprite: Sprite,
+    collider: Collider,
+    shield: Shield,
+}
+
+impl Default for ShieldBundle {
+    fn default() -> Self {
+        Self {
+            transform: Transform::default(),
+            sprite: Sprite {
+                color: Color::srgb(0., 1., 0.5),
+                ..default()
+            },
+            collider: Collider::default(),
+            shield: Shield::default(),
+        }
+    }
+}
+
 fn setup(mut commands: Commands) {
     // Camera
     commands.spawn(Camera2d);
@@ -134,19 +156,15 @@ fn setup(mut commands: Commands) {
             0.,
         );
         let scale = Vec3::new(30., 20., 0.);
-        commands.spawn((
-            Transform {
+        commands.spawn(ShieldBundle {
+            transform: Transform {
                 translation,
                 scale,
                 ..default()
             },
-            Sprite {
-                color: Color::srgb(0., 1., 0.5),
-                ..default()
-            },
-            Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-            Shield { hits: 0 },
-        ));
+            collider: Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+            ..default()
+        });
     }
 
     commands.insert_resource(EnemyDirection::Right);
