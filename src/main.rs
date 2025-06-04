@@ -40,19 +40,19 @@ fn main() {
         .run();
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Player;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct PlayerBullet;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Enemy;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct EnemyBullet;
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct EnemyRow(usize);
 
 #[derive(Resource)]
@@ -64,10 +64,16 @@ enum EnemyDirection {
 #[derive(Component)]
 struct Collider(Aabb2d);
 
+impl Default for Collider {
+    fn default() -> Self {
+        Self(Aabb2d::new(Vec2::default(), Vec2::default()))
+    }
+}
+
 #[derive(Resource)]
 struct PlayerFireTimer(Timer);
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Shield {
     hits: u32,
 }
