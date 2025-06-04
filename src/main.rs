@@ -43,6 +43,26 @@ fn main() {
 #[derive(Component, Default)]
 struct Player;
 
+#[derive(Bundle)]
+struct PlayerBundle {
+    transform: Transform,
+    sprite: Sprite,
+    player: Player,
+}
+
+impl Default for PlayerBundle {
+    fn default() -> Self {
+        Self {
+            transform: Transform::default(),
+            sprite: Sprite {
+                color: Color::srgb(0., 1., 0.5),
+                ..default()
+            },
+            player: Player,
+        }
+    }
+}
+
 #[derive(Component, Default)]
 struct PlayerBullet;
 
@@ -105,18 +125,14 @@ fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
 
     // Player
-    commands.spawn((
-        Transform {
+    commands.spawn(PlayerBundle {
+        transform: Transform {
             translation: Vec3::new(0., -250., 0.),
             scale: Vec3::splat(30.),
             ..default()
         },
-        Sprite {
-            color: Color::srgb(0., 1., 0.5),
-            ..default()
-        },
-        Player,
-    ));
+        ..default()
+    });
 
     // Enemies
     let rows = 15;
