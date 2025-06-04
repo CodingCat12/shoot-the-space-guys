@@ -69,6 +69,28 @@ struct PlayerBullet;
 #[derive(Component, Default)]
 struct Enemy;
 
+#[derive(Bundle)]
+struct EnemyBundle {
+    transform: Transform,
+    sprite: Sprite,
+    collider: Collider,
+    enemy: Enemy,
+}
+
+impl Default for EnemyBundle {
+    fn default() -> Self {
+        Self {
+            transform: Transform::default(),
+            sprite: Sprite {
+                color: Color::srgb(1., 0., 0.),
+                ..default()
+            },
+            collider: Collider::default(),
+            enemy: Enemy,
+        }
+    }
+}
+
 #[derive(Component, Default)]
 struct EnemyBullet;
 
@@ -146,19 +168,15 @@ fn setup(mut commands: Commands) {
                 0.,
             );
             let scale = Vec3::splat(20.);
-            commands.spawn((
-                Transform {
+            commands.spawn(EnemyBundle {
+                transform: Transform {
                     translation,
                     scale,
                     ..default()
                 },
-                Sprite {
-                    color: Color::srgb(1., 0., 0.),
-                    ..default()
-                },
-                Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-                Enemy,
-            ));
+                collider: Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+                ..default()
+            });
         }
     }
 
