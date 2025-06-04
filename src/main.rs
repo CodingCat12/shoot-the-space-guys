@@ -112,7 +112,6 @@ fn setup(mut commands: Commands) {
                     color: Color::srgb(1., 0., 0.),
                     ..default()
                 },
-                EnemyRow(row),
                 Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
                 Enemy,
             ));
