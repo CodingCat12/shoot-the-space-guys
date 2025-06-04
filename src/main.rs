@@ -74,6 +74,7 @@ struct EnemyBundle {
     transform: Transform,
     sprite: Sprite,
     collider: Collider,
+    row: EnemyRow,
     enemy: Enemy,
 }
 
@@ -85,6 +86,7 @@ impl Default for EnemyBundle {
                 color: Color::srgb(1., 0., 0.),
                 ..default()
             },
+            row: EnemyRow(0),
             collider: Collider::default(),
             enemy: Enemy,
         }
@@ -174,6 +176,7 @@ fn setup(mut commands: Commands) {
                     scale,
                     ..default()
                 },
+                row: EnemyRow(row),
                 collider: Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
                 ..default()
             });
