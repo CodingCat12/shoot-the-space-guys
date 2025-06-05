@@ -24,11 +24,8 @@ fn main() {
         )))
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, setup)
-        .add_systems(
-            Update,
-            (player_movement, player_fire, player_bullet_movement),
-        )
-        .add_systems(Update, (enemy_movement, enemy_fire, enemy_bullet_movement))
+        .add_systems(Update, (player_movement, player_fire))
+        .add_systems(Update, (enemy_movement, enemy_fire, bullet_movement))
         .add_systems(
             Update,
             (
@@ -64,9 +61,6 @@ impl Default for PlayerBundle {
 }
 
 #[derive(Component, Default)]
-struct PlayerBullet;
-
-#[derive(Component, Default)]
 struct Enemy;
 
 #[derive(Bundle)]
@@ -92,9 +86,6 @@ impl Default for EnemyBundle {
         }
     }
 }
-
-#[derive(Component, Default)]
-struct EnemyBullet;
 
 #[derive(Component, Default)]
 struct EnemyRow(usize);
@@ -128,6 +119,12 @@ struct ShieldBundle {
     sprite: Sprite,
     collider: Collider,
     shield: Shield,
+}
+
+#[derive(Component)]
+enum Bullet {
+    Player,
+    Enemy,
 }
 
 impl Default for ShieldBundle {
@@ -246,7 +243,7 @@ fn player_fire(
                 color: Color::WHITE,
                 ..default()
             },
-            PlayerBullet,
+            Bullet::Player,
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
     }
@@ -288,33 +285,24 @@ fn enemy_fire(
                     ..default()
                 },
                 Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-                EnemyBullet,
+                Bullet::Enemy,
             ));
         }
     }
 }
 
-fn enemy_bullet_movement(
+fn bullet_movement(
     mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform), With<EnemyBullet>>,
+    mut query: Query<(Entity, &mut Transform, &Bullet)>,
     time: Res<Time>,
 ) {
-    for (entity, mut transform) in &mut query {
-        transform.translation.y -= ENEMY_BULLET_SPEED * time.delta_secs();
-        if transform.translation.y < BOTTOM_WALL {
-            commands.entity(entity).despawn();
-        }
-    }
-}
-
-fn player_bullet_movement(
-    mut commands: Commands,
-    mut query: Query<(Entity, &mut Transform), With<PlayerBullet>>,
-    time: Res<Time>,
-) {
-    for (entity, mut transform) in &mut query {
-        transform.translation.y += PLAYER_BULLET_SPEED * time.delta_secs();
-        if transform.translation.y > TOP_WALL {
+    for (entity, mut transform, bullet) in &mut query {
+        let speed = match bullet {
+            Bullet::Player => PLAYER_BULLET_SPEED,
+            Bullet::Enemy => -ENEMY_BULLET_SPEED,
+        };
+        transform.translation.y += speed * time.delta_secs();
+        if !(BOTTOM_WALL..=TOP_WALL).contains(&transform.translation.y) {
             commands.entity(entity).despawn();
         }
     }
@@ -361,7 +349,7 @@ use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 
 fn enemy_bullet_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &Collider), With<PlayerBullet>>,
+    bullet_query: Query<(Entity, &Collider), With<Bullet>>,
     enemy_query: Query<(Entity, &Collider), With<Enemy>>,
 ) {
     for (bullet_entity, Collider(bullet_aabb)) in bullet_query {
@@ -378,7 +366,7 @@ fn enemy_bullet_collision(
 #[allow(clippy::type_complexity)]
 fn shield_bullet_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &Collider), Or<(With<PlayerBullet>, With<EnemyBullet>)>>,
+    bullet_query: Query<(Entity, &Collider), With<Bullet>>,
     mut shield_query: Query<(Entity, &Collider, &mut Shield)>,
 ) {
     for (bullet_entity, Collider(bullet_aabb)) in bullet_query {
