@@ -198,7 +198,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             Sprite {
-                image: asset_server.load("sprites/heart2.png"),
+                image: asset_server.load("sprites/heart.png"),
                 ..default()
             },
             Heart { number: x },
