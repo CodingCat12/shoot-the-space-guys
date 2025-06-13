@@ -26,6 +26,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, (player_movement, player_fire))
         .add_systems(Update, (enemy_movement, enemy_fire, bullet_movement))
+        .add_systems(Update, update_hearts)
         .add_systems(
             Update,
             (
@@ -36,6 +37,7 @@ fn main() {
                 check_hp,
             ),
         )
+        .add_systems(Update, update_score_text)
         .run();
 }
 
@@ -224,10 +226,28 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
     }
 
+    let font = TextFont {
+        font_size: 32.0,
+        font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+        ..default()
+    };
+
+    // Score text
+    commands
+        .spawn((Text::new("Score: "), font.clone()))
+        .with_child((TextSpan::default(), font, ScoreText));
+
     const STARTING_HP: u8 = 5;
 
+    commands.insert_resource(Score(0));
     commands.insert_resource(EnemyDirection::Right);
 }
+
+#[derive(Component)]
+struct ScoreText;
+
+#[derive(Resource)]
+struct Score(u32);
 
 fn player_movement(
     keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -370,16 +390,25 @@ fn update_collider(mut query: Query<(&Transform, &mut Collider)>) {
     }
 }
 
+fn update_score_text(score: Res<Score>, mut query: Query<&mut TextSpan, With<ScoreText>>) {
+    if let Ok(mut text_span) = query.single_mut() {
+        let value = score.0;
+        **text_span = format!("{value}");
+    }
+}
+
 use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 
 fn enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Collider), With<Bullet>>,
     enemy_query: Query<(Entity, &Collider), With<Enemy>>,
+    mut score: ResMut<Score>,
 ) {
     for (bullet_entity, Collider(bullet_aabb)) in bullet_query {
         for (enemy_entity, Collider(enemy_aabb)) in enemy_query {
             if bullet_aabb.intersects(enemy_aabb) {
+                score.0 += 1;
                 commands.entity(bullet_entity).despawn();
                 commands.entity(enemy_entity).despawn();
                 break;
