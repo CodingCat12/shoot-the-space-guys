@@ -11,6 +11,8 @@ const RIGHT_WALL: f32 = 400.;
 const BOTTOM_WALL: f32 = -300.;
 const TOP_WALL: f32 = 300.;
 
+const STARTING_HP: u8 = 5;
+
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::BLACK))
@@ -236,8 +238,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((Text::new("Score: "), font.clone()))
         .with_child((TextSpan::default(), font, ScoreText));
-
-    const STARTING_HP: u8 = 5;
 
     commands.insert_resource(Score(0));
     commands.insert_resource(EnemyDirection::Right);
