@@ -187,7 +187,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     }
 
     // HP
-    commands.insert_resource(HP(STARTING_HP));
+    commands.insert_resource(Hp(STARTING_HP));
 
     // HP Visualisation
     for x in 1..=STARTING_HP {
@@ -421,7 +421,7 @@ fn player_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Collider, &Bullet)>,
     player_query: Query<&Collider, With<Player>>,
-    mut hp: ResMut<HP>,
+    mut hp: ResMut<Hp>,
 ) {
     if let Ok(Collider(enemy_aabb)) = player_query.single() {
         for (bullet_entity, Collider(bullet_aabb), bullet) in bullet_query {
@@ -439,14 +439,14 @@ fn player_bullet_collision(
 }
 
 #[derive(Resource)]
-struct HP(u8);
+struct Hp(u8);
 
 #[derive(Component)]
 struct Heart {
     number: u8,
 }
 
-fn update_hearts(hp: Res<HP>, mut query: Query<(&mut Sprite, &Heart)>) {
+fn update_hearts(hp: Res<Hp>, mut query: Query<(&mut Sprite, &Heart)>) {
     for (mut sprite, &Heart { number }) in &mut query {
         if hp.0 >= number {
             sprite.color = Color::default();
@@ -476,7 +476,7 @@ fn shield_bullet_collision(
     }
 }
 
-fn check_hp(hp: Res<HP>, mut writer: EventWriter<AppExit>) {
+fn check_hp(hp: Res<Hp>, mut writer: EventWriter<AppExit>) {
     if hp.0 == 0 {
         writer.write(AppExit::Success);
     }
