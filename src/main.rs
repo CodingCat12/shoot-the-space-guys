@@ -22,7 +22,7 @@ fn main() {
             1.,
             TimerMode::Repeating,
         )))
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_systems(Startup, setup)
         .add_systems(Update, (player_movement, player_fire))
         .add_systems(Update, (enemy_movement, enemy_fire, bullet_movement))
@@ -32,6 +32,8 @@ fn main() {
                 update_collider,
                 enemy_bullet_collision,
                 shield_bullet_collision,
+                player_bullet_collision,
+                check_hp,
             ),
         )
         .run();
@@ -45,6 +47,7 @@ struct PlayerBundle {
     transform: Transform,
     sprite: Sprite,
     player: Player,
+    collider: Collider,
 }
 
 impl Default for PlayerBundle {
@@ -56,6 +59,7 @@ impl Default for PlayerBundle {
                 ..default()
             },
             player: Player,
+            collider: Collider(Aabb2d::new(Vec2::default(), Vec2::splat(15.))),
         }
     }
 }
@@ -141,7 +145,7 @@ impl Default for ShieldBundle {
     }
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Camera
     commands.spawn(Camera2d);
 
@@ -180,6 +184,25 @@ fn setup(mut commands: Commands) {
         }
     }
 
+    // HP
+    commands.insert_resource(HP(STARTING_HP));
+
+    // HP Visualisation
+    for x in 1..=STARTING_HP {
+        commands.spawn((
+            Transform {
+                translation: Vec3::new(x as f32 * 64., 0., 0.),
+                scale: Vec3::splat(6.0),
+                ..default()
+            },
+            Sprite {
+                image: asset_server.load("sprites/heart2.png"),
+                ..default()
+            },
+            Heart { number: x },
+        ));
+    }
+
     // Shields
     let cols = 5;
     let spacing = 100.;
@@ -200,6 +223,8 @@ fn setup(mut commands: Commands) {
             ..default()
         });
     }
+
+    const STARTING_HP: u8 = 5;
 
     commands.insert_resource(EnemyDirection::Right);
 }
@@ -363,6 +388,45 @@ fn enemy_bullet_collision(
     }
 }
 
+fn player_bullet_collision(
+    mut commands: Commands,
+    bullet_query: Query<(Entity, &Collider, &Bullet)>,
+    player_query: Query<&Collider, With<Player>>,
+    mut hp: ResMut<HP>,
+) {
+    if let Ok(Collider(enemy_aabb)) = player_query.single() {
+        for (bullet_entity, Collider(bullet_aabb), bullet) in bullet_query {
+            if !matches!(bullet, Bullet::Enemy) {
+                continue;
+            }
+
+            if bullet_aabb.intersects(enemy_aabb) {
+                hp.0 -= 1;
+                commands.entity(bullet_entity).despawn();
+                break;
+            }
+        }
+    }
+}
+
+#[derive(Resource)]
+struct HP(u8);
+
+#[derive(Component)]
+struct Heart {
+    number: u8,
+}
+
+fn update_hearts(hp: Res<HP>, mut query: Query<(&mut Sprite, &Heart)>) {
+    for (mut sprite, &Heart { number }) in &mut query {
+        if hp.0 >= number {
+            sprite.color = Color::default();
+        } else {
+            sprite.color = Color::srgba_u8(0, 0, 0, 0);
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn shield_bullet_collision(
     mut commands: Commands,
@@ -380,5 +444,11 @@ fn shield_bullet_collision(
                 break;
             }
         }
+    }
+}
+
+fn check_hp(hp: Res<HP>, mut writer: EventWriter<AppExit>) {
+    if hp.0 == 0 {
+        writer.write(AppExit::Success);
     }
 }
