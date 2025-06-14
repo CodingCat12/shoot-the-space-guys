@@ -395,7 +395,6 @@ fn update_hearts(hp: Res<Hp>, mut query: Query<(&mut Sprite, &Heart)>) {
     }
 }
 
-#[allow(clippy::type_complexity)]
 fn shield_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Collider), With<Bullet>>,
