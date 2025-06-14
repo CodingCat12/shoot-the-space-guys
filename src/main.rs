@@ -46,54 +46,8 @@ fn main() {
 #[derive(Component, Default)]
 struct Player;
 
-#[derive(Bundle)]
-struct PlayerBundle {
-    transform: Transform,
-    sprite: Sprite,
-    player: Player,
-    collider: Collider,
-}
-
-impl Default for PlayerBundle {
-    fn default() -> Self {
-        Self {
-            transform: Transform::default(),
-            sprite: Sprite {
-                color: Color::srgb(0., 1., 0.5),
-                ..default()
-            },
-            player: Player,
-            collider: Collider(Aabb2d::new(Vec2::default(), Vec2::splat(15.))),
-        }
-    }
-}
-
 #[derive(Component, Default)]
 struct Enemy;
-
-#[derive(Bundle)]
-struct EnemyBundle {
-    transform: Transform,
-    sprite: Sprite,
-    collider: Collider,
-    row: EnemyRow,
-    enemy: Enemy,
-}
-
-impl Default for EnemyBundle {
-    fn default() -> Self {
-        Self {
-            transform: Transform::default(),
-            sprite: Sprite {
-                color: Color::srgb(1., 0., 0.),
-                ..default()
-            },
-            row: EnemyRow(0),
-            collider: Collider::default(),
-            enemy: Enemy,
-        }
-    }
-}
 
 #[derive(Component, Default)]
 struct EnemyRow(usize);
@@ -107,12 +61,6 @@ enum EnemyDirection {
 #[derive(Component)]
 struct Collider(Aabb2d);
 
-impl Default for Collider {
-    fn default() -> Self {
-        Self(Aabb2d::new(Vec2::default(), Vec2::default()))
-    }
-}
-
 #[derive(Resource)]
 struct PlayerFireTimer(Timer);
 
@@ -121,32 +69,10 @@ struct Shield {
     hits: u32,
 }
 
-#[derive(Bundle)]
-struct ShieldBundle {
-    transform: Transform,
-    sprite: Sprite,
-    collider: Collider,
-    shield: Shield,
-}
-
 #[derive(Component)]
 enum Bullet {
     Player,
     Enemy,
-}
-
-impl Default for ShieldBundle {
-    fn default() -> Self {
-        Self {
-            transform: Transform::default(),
-            sprite: Sprite {
-                color: Color::srgb(0., 1., 0.5),
-                ..default()
-            },
-            collider: Collider::default(),
-            shield: Shield::default(),
-        }
-    }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -154,14 +80,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
     // Player
-    commands.spawn(PlayerBundle {
-        transform: Transform {
+    commands.spawn((
+        Transform {
             translation: Vec3::new(0., -250., 0.),
             scale: Vec3::splat(30.),
             ..default()
         },
-        ..default()
-    });
+        Sprite {
+            color: Color::srgb(0., 1., 0.5),
+            ..default()
+        },
+        Player,
+        Collider(Aabb2d::new(Vec2::default(), Vec2::splat(15.))),
+    ));
 
     // Enemies
     let rows = 15;
@@ -175,16 +106,20 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 0.,
             );
             let scale = Vec3::splat(20.);
-            commands.spawn(EnemyBundle {
-                transform: Transform {
+            commands.spawn((
+                Transform {
                     translation,
                     scale,
                     ..default()
                 },
-                row: EnemyRow(row),
-                collider: Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-                ..default()
-            });
+                EnemyRow(row),
+                Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+                Sprite {
+                    color: Color::srgb(1., 0., 0.),
+                    ..default()
+                },
+                Enemy,
+            ));
         }
     }
 
@@ -217,15 +152,19 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             0.,
         );
         let scale = Vec3::new(30., 20., 0.);
-        commands.spawn(ShieldBundle {
-            transform: Transform {
+        commands.spawn((
+            Transform {
                 translation,
                 scale,
                 ..default()
             },
-            collider: Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-            ..default()
-        });
+            Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+            Sprite {
+                color: Color::srgb(0., 1., 0.5),
+                ..default()
+            },
+            Shield { hits: 0 },
+        ));
     }
 
     let font = TextFont {
