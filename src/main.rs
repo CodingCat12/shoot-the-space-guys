@@ -43,13 +43,13 @@ fn main() {
         .run();
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 struct Player;
 
-#[derive(Component, Default)]
+#[derive(Component)]
 struct Enemy;
 
-#[derive(Component, Default)]
+#[derive(Component)]
 struct EnemyRow(usize);
 
 #[derive(Resource)]
@@ -64,7 +64,7 @@ struct Collider(Aabb2d);
 #[derive(Resource)]
 struct PlayerFireTimer(Timer);
 
-#[derive(Component, Default)]
+#[derive(Component)]
 struct Shield {
     hits: u32,
 }
