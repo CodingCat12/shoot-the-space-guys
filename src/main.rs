@@ -172,9 +172,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.insert_resource(EnemyDirection::Right);
 
-    // Black background
-    commands.insert_resource(ClearColor(Color::BLACK));
-
     // Fire timers
     commands.insert_resource(PlayerFireTimer(Timer::from_seconds(
         0.1,
