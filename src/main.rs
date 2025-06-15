@@ -36,7 +36,6 @@ fn main() {
                 enemy_bullet_collision,
                 shield_bullet_collision,
                 player_bullet_collision,
-                check_hp,
             ),
         )
         .add_systems(Update, update_score_text)
@@ -361,6 +360,7 @@ fn player_bullet_collision(
     bullet_query: Query<(Entity, &Collider, &Bullet)>,
     player_query: Query<&Collider, With<Player>>,
     mut hp: ResMut<Hp>,
+    mut app_exit_writer: EventWriter<AppExit>,
 ) {
     if let Ok(Collider(enemy_aabb)) = player_query.single() {
         for (bullet_entity, Collider(bullet_aabb), bullet) in bullet_query {
@@ -370,6 +370,11 @@ fn player_bullet_collision(
 
             if bullet_aabb.intersects(enemy_aabb) {
                 hp.0 -= 1;
+
+                if hp.0 == 0 {
+                    app_exit_writer.write(AppExit::Success);
+                }
+
                 commands.entity(bullet_entity).despawn();
                 break;
             }
@@ -411,11 +416,5 @@ fn shield_bullet_collision(
                 break;
             }
         }
-    }
-}
-
-fn check_hp(hp: Res<Hp>, mut writer: EventWriter<AppExit>) {
-    if hp.0 == 0 {
-        writer.write(AppExit::Success);
     }
 }
