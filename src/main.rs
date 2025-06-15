@@ -15,30 +15,20 @@ const STARTING_HP: u8 = 5;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::BLACK))
-        .insert_resource(PlayerFireTimer(Timer::from_seconds(
-            0.1,
-            TimerMode::Repeating,
-        )))
-        .insert_resource(EnemyFireTimer(Timer::from_seconds(
-            1.,
-            TimerMode::Repeating,
-        )))
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_systems(Startup, setup)
+        .add_systems(Update, update_collider)
         .add_systems(Update, (player_movement, player_fire))
         .add_systems(Update, (enemy_movement, enemy_fire, bullet_movement))
-        .add_systems(Update, update_hearts)
         .add_systems(
             Update,
             (
-                update_collider,
                 enemy_bullet_collision,
                 shield_bullet_collision,
                 player_bullet_collision,
             ),
         )
-        .add_systems(Update, update_score_text)
+        .add_systems(Update, (update_score_text, update_hearts))
         .run();
 }
 
@@ -166,6 +156,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ));
     }
 
+    // Score
+    commands.insert_resource(Score(0));
+
     let font = TextFont {
         font_size: 32.0,
         font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
@@ -177,8 +170,20 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn((Text::new("Score: "), font.clone()))
         .with_child((TextSpan::default(), font, ScoreText));
 
-    commands.insert_resource(Score(0));
     commands.insert_resource(EnemyDirection::Right);
+
+    // Black background
+    commands.insert_resource(ClearColor(Color::BLACK));
+
+    // Fire timers
+    commands.insert_resource(PlayerFireTimer(Timer::from_seconds(
+        0.1,
+        TimerMode::Repeating,
+    )));
+    commands.insert_resource(EnemyFireTimer(Timer::from_seconds(
+        1.,
+        TimerMode::Repeating,
+    )));
 }
 
 #[derive(Component)]
