@@ -21,7 +21,7 @@ fn main() {
         .add_systems(Update, (player_movement, player_fire))
         .add_systems(FixedUpdate, (enemy_movement, enemy_fire, bullet_movement))
         .add_systems(
-            Update,
+            FixedUpdate,
             (
                 enemy_bullet_collision,
                 shield_bullet_collision,
