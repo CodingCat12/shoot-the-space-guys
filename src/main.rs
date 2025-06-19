@@ -19,7 +19,7 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(Update, update_collider)
         .add_systems(Update, (player_movement, player_fire))
-        .add_systems(Update, (enemy_movement, enemy_fire, bullet_movement))
+        .add_systems(FixedUpdate, (enemy_movement, enemy_fire, bullet_movement))
         .add_systems(
             Update,
             (
@@ -238,7 +238,7 @@ fn player_fire(
 struct EnemyFireTimer(Timer);
 
 fn enemy_fire(
-    time: Res<Time>,
+    time: Res<Time<Fixed>>,
     mut fire_timer: ResMut<EnemyFireTimer>,
     mut commands: Commands,
     query: Query<(&Transform, &EnemyRow), With<Enemy>>,
@@ -279,7 +279,7 @@ fn enemy_fire(
 fn bullet_movement(
     mut commands: Commands,
     mut query: Query<(Entity, &mut Transform, &Bullet)>,
-    time: Res<Time>,
+    time: Res<Time<Fixed>>,
 ) {
     for (entity, mut transform, bullet) in &mut query {
         let speed = match bullet {
@@ -296,7 +296,7 @@ fn bullet_movement(
 fn enemy_movement(
     mut query: Query<&mut Transform, With<Enemy>>,
     mut direction: ResMut<EnemyDirection>,
-    time: Res<Time>,
+    time: Res<Time<Fixed>>,
 ) {
     let direction_f32 = match *direction {
         EnemyDirection::Left => -1.,
