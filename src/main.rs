@@ -90,6 +90,11 @@ impl From<Direction> for f32 {
     }
 }
 
+#[derive(Resource)]
+struct Sfx {
+    shoot: Handle<AudioSource>,
+}
+
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Camera
     commands.spawn(Camera2d);
@@ -207,6 +212,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         1.,
         TimerMode::Repeating,
     )));
+
+    // Sound effects
+    commands.insert_resource(Sfx {
+        shoot: asset_server.load("sounds/laser.ogg"),
+    });
 }
 
 #[derive(Component)]
@@ -251,6 +261,7 @@ fn player_fire(
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
+    sfx: Res<Sfx>,
 ) {
     fire_timer.0.tick(time.delta());
 
@@ -273,6 +284,7 @@ fn player_fire(
             Bullet::Player,
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
+        commands.spawn(AudioPlayer::new(sfx.shoot.clone()));
     }
 }
 
