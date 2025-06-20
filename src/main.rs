@@ -284,7 +284,10 @@ fn player_fire(
             Bullet::Player,
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
-        commands.spawn(AudioPlayer::new(sfx.shoot.clone()));
+        commands.spawn((
+            AudioPlayer::new(sfx.shoot.clone()),
+            PlaybackSettings::DESPAWN,
+        ));
     }
 }
 
