@@ -286,7 +286,7 @@ fn player_fire(
         ));
         commands.spawn((
             AudioPlayer::new(sfx.shoot.clone()),
-            PlaybackSettings::DESPAWN,
+            PlaybackSettings::DESPAWN.with_volume(bevy::audio::Volume::Linear(0.5)),
         ));
     }
 }
