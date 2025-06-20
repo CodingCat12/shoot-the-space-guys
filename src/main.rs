@@ -16,9 +16,11 @@ const STARTING_HP: u8 = 5;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .init_resource::<InputState>()
         .add_systems(Startup, setup)
         .add_systems(Update, update_collider)
-        .add_systems(Update, (player_movement, player_fire))
+        .add_systems(FixedUpdate, (player_movement, player_fire))
+        .add_systems(Update, (update_player_direction, update_player_fire))
         .add_systems(FixedUpdate, (enemy_movement, enemy_fire, bullet_movement))
         .add_systems(
             FixedUpdate,
@@ -62,6 +64,30 @@ struct Shield {
 enum Bullet {
     Player,
     Enemy,
+}
+
+#[derive(Resource, Default)]
+struct InputState {
+    player_direction: Direction,
+    player_fire: bool,
+}
+
+#[derive(Default, Clone, Copy)]
+enum Direction {
+    Left,
+    Right,
+    #[default]
+    None,
+}
+
+impl From<Direction> for f32 {
+    fn from(val: Direction) -> Self {
+        match val {
+            Direction::Left => -1.0,
+            Direction::Right => 1.0,
+            Direction::None => 0.0,
+        }
+    }
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -189,30 +215,46 @@ struct ScoreText;
 #[derive(Resource)]
 struct Score(u32);
 
-fn player_movement(
+fn update_player_direction(
     keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut input: ResMut<InputState>,
+) {
+    input.player_direction = match (
+        keyboard_input.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyD]),
+        keyboard_input.any_pressed([KeyCode::ArrowRight, KeyCode::KeyA]),
+    ) {
+        (true, false) => Direction::Left,
+        (false, true) => Direction::Right,
+        _ => Direction::None,
+    };
+}
+
+fn update_player_fire(keyboard_input: Res<ButtonInput<KeyCode>>, mut input: ResMut<InputState>) {
+    input.player_fire = keyboard_input.any_pressed([KeyCode::Space, KeyCode::KeyZ]);
+}
+
+fn player_movement(
+    input: Res<InputState>,
     mut query: Query<&mut Transform, With<Player>>,
-    time: Res<Time>,
+    time: Res<Time<Fixed>>,
 ) {
     if let Ok(mut transform) = query.single_mut() {
-        let direction = f32::from(keyboard_input.pressed(KeyCode::ArrowRight))
-            - f32::from(keyboard_input.pressed(KeyCode::ArrowLeft));
-
+        let direction = f32::from(input.player_direction);
         transform.translation.x += direction * PLAYER_SPEED * time.delta_secs();
         transform.translation.x = transform.translation.x.clamp(LEFT_WALL, RIGHT_WALL);
     }
 }
 
 fn player_fire(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
+    input: Res<InputState>,
+    time: Res<Time<Fixed>>,
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
 ) {
     fire_timer.0.tick(time.delta());
 
-    if keyboard_input.any_pressed([KeyCode::Space, KeyCode::KeyZ])
+    if input.player_fire
         && fire_timer.0.finished()
         && let Ok(transform) = query.single()
     {
