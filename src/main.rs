@@ -230,8 +230,8 @@ fn update_player_direction(
     mut input: ResMut<InputState>,
 ) {
     input.player_direction = match (
-        keyboard_input.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyD]),
-        keyboard_input.any_pressed([KeyCode::ArrowRight, KeyCode::KeyA]),
+        keyboard_input.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]),
+        keyboard_input.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]),
     ) {
         (true, false) => Direction::Left,
         (false, true) => Direction::Right,
