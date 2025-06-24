@@ -330,16 +330,17 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Score
     commands.insert_resource(Score(0));
 
-    let font = TextFont {
-        font_size: 32.0,
-        font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
-        ..default()
-    };
-
     // Score text
-    commands
-        .spawn((Text::new("Score: "), font.clone(), OnGameScreen))
-        .with_child((TextSpan::default(), font, ScoreText, OnGameScreen));
+    commands.spawn((
+        Text::default(),
+        TextFont {
+            font_size: 32.0,
+            font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+            ..default()
+        },
+        ScoreText,
+        OnGameScreen,
+    ));
 
     commands.insert_resource(EnemyDirection::Right);
 
@@ -550,10 +551,10 @@ fn update_collider(mut query: Query<(&Transform, &mut Collider)>) {
     }
 }
 
-fn update_score_text(score: Res<Score>, mut query: Query<&mut TextSpan, With<ScoreText>>) {
-    if let Ok(mut text_span) = query.single_mut() {
+fn update_score_text(score: Res<Score>, mut query: Query<&mut Text, With<ScoreText>>) {
+    if let Ok(mut text) = query.single_mut() {
         let value = score.0;
-        **text_span = format!("{value}");
+        **text = format!("Score: {value}");
     }
 }
 
