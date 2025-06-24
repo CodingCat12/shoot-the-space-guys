@@ -29,8 +29,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2d);
 
     // Sound effects
-    commands.insert_resource(Sfx {
-        shoot: asset_server.load("sounds/laser.ogg"),
+    commands.insert_resource(GameAssets {
+        font_press_start: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+        sound_player_shoot: asset_server.load("sounds/laser.ogg"),
+        sprite_heart: asset_server.load("sprites/heart.png"),
     });
 }
 
@@ -59,7 +61,7 @@ fn menu_plugin(app: &mut App) {
 #[derive(Component)]
 struct OnMenu;
 
-fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_menu(mut commands: Commands, game_assets: Res<GameAssets>) {
     let button = (
         Node {
             width: Val::Percent(100.0),
@@ -86,7 +88,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             children![(
                 Text::new("Start Game"),
                 TextFont {
-                    font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+                    font: game_assets.font_press_start.clone(),
                     font_size: 25.0,
                     ..default()
                 },
@@ -225,11 +227,13 @@ impl From<Direction> for f32 {
 }
 
 #[derive(Resource)]
-struct Sfx {
-    shoot: Handle<AudioSource>,
+struct GameAssets {
+    font_press_start: Handle<Font>,
+    sound_player_shoot: Handle<AudioSource>,
+    sprite_heart: Handle<Image>,
 }
 
-fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn game_setup(mut commands: Commands, game_assets: Res<GameAssets>) {
     // Player
     commands.spawn((
         Transform {
@@ -293,7 +297,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             Sprite {
-                image: asset_server.load("sprites/heart.png"),
+                image: game_assets.sprite_heart.clone(),
                 ..default()
             },
             Heart { number: x },
@@ -332,7 +336,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     let font = TextFont {
         font_size: 32.0,
-        font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+        font: game_assets.font_press_start.clone(),
         ..default()
     };
 
@@ -422,7 +426,7 @@ fn player_fire(
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
-    sfx: Res<Sfx>,
+    sfx: Res<GameAssets>,
 ) {
     fire_timer.0.tick(time.delta());
 
@@ -446,7 +450,7 @@ fn player_fire(
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
         commands.spawn((
-            AudioPlayer::new(sfx.shoot.clone()),
+            AudioPlayer::new(sfx.sound_player_shoot.clone()),
             PlaybackSettings::DESPAWN.with_volume(bevy::audio::Volume::Linear(0.5)),
         ));
     }
