@@ -20,7 +20,7 @@ fn main() {
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .init_state::<GameState>()
         .add_systems(Startup, setup)
-        .add_plugins(game_plugin)
+        .add_plugins((menu_plugin, game_plugin))
         .run();
 }
 
@@ -34,16 +34,102 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
+    for entity in &to_despawn {
+        commands.entity(entity).despawn();
+    }
+}
+
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 enum GameState {
+    Game,
     #[default]
-    Running,
+    Menu,
 }
+
+const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
+const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
+
+fn menu_plugin(app: &mut App) {
+    app.add_systems(OnEnter(GameState::Menu), setup_menu)
+        .add_systems(Update, button_system.run_if(in_state(GameState::Menu)))
+        .add_systems(OnExit(GameState::Menu), despawn_screen::<OnMenu>);
+}
+
+#[derive(Component)]
+struct OnMenu;
+
+fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let button = (
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::Center,
+            ..default()
+        },
+        children![(
+            Button,
+            Node {
+                width: Val::Px(300.0),
+                height: Val::Px(65.0),
+                border: UiRect::all(Val::Px(5.0)),
+                // horizontally center child text
+                justify_content: JustifyContent::Center,
+                // vertically center child text
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BorderColor(Color::BLACK),
+            BorderRadius::MAX,
+            BackgroundColor(NORMAL_BUTTON),
+            children![(
+                Text::new("Start Game"),
+                TextFont {
+                    font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+                    font_size: 25.0,
+                    ..default()
+                },
+                TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                TextShadow::default(),
+            )]
+        )],
+    );
+    commands.spawn((button, OnMenu));
+}
+
+#[allow(clippy::type_complexity)]
+fn button_system(
+    mut interaction_query: Query<
+        (&Interaction, &mut BackgroundColor, &mut BorderColor),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut game_state: ResMut<NextState<GameState>>,
+) {
+    for (interaction, mut color, mut border_color) in &mut interaction_query {
+        match *interaction {
+            Interaction::Pressed => {
+                game_state.set(GameState::Game);
+            }
+            Interaction::Hovered => {
+                *color = HOVERED_BUTTON.into();
+                border_color.0 = Color::WHITE;
+            }
+            Interaction::None => {
+                *color = NORMAL_BUTTON.into();
+                border_color.0 = Color::BLACK;
+            }
+        }
+    }
+}
+
+#[derive(Component)]
+struct OnGameScreen;
 
 fn game_plugin(app: &mut App) {
     app.init_resource::<InputState>()
         .add_event::<EnemyKilled>()
-        .add_systems(OnEnter(GameState::Running), game_setup)
+        .add_systems(OnEnter(GameState::Game), game_setup)
         .add_systems(
             FixedUpdate,
             (
@@ -62,7 +148,7 @@ fn game_plugin(app: &mut App) {
                 shield_bullet_collision,
                 player_bullet_collision,
             )
-                .run_if(in_state(GameState::Running)),
+                .run_if(in_state(GameState::Game)),
         )
         .add_systems(
             Update,
@@ -74,8 +160,9 @@ fn game_plugin(app: &mut App) {
                 update_player_direction,
                 update_player_fire,
             )
-                .run_if(in_state(GameState::Running)),
-        );
+                .run_if(in_state(GameState::Game)),
+        )
+        .add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>);
 }
 
 #[derive(Component)]
@@ -156,6 +243,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Player,
         Collider(Aabb2d::new(Vec2::default(), Vec2::splat(15.))),
+        OnGameScreen,
     ));
 
     // Enemies
@@ -186,6 +274,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     ..default()
                 },
                 Enemy,
+                OnGameScreen,
             ));
         }
     }
@@ -208,6 +297,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             Heart { number: x },
+            OnGameScreen,
         ));
     }
 
@@ -233,6 +323,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 ..default()
             },
             Shield { hits: 0 },
+            OnGameScreen,
         ));
     }
 
@@ -247,8 +338,8 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     // Score text
     commands
-        .spawn((Text::new("Score: "), font.clone()))
-        .with_child((TextSpan::default(), font, ScoreText));
+        .spawn((Text::new("Score: "), font.clone(), OnGameScreen))
+        .with_child((TextSpan::default(), font, ScoreText, OnGameScreen));
 
     commands.insert_resource(EnemyDirection::Right);
 
