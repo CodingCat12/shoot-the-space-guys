@@ -18,24 +18,44 @@ const STARTING_HP: u8 = 5;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .init_resource::<InputState>()
+        .add_plugins(game_plugin)
+        .run();
+}
+
+fn game_plugin(app: &mut App) {
+    app.init_resource::<InputState>()
         .add_event::<EnemyKilled>()
-        .add_systems(FixedUpdate, update_front_enemies)
         .add_systems(Startup, setup)
-        .add_systems(Update, update_collider)
-        .add_systems(FixedUpdate, (player_movement, player_fire))
-        .add_systems(Update, (update_player_direction, update_player_fire))
-        .add_systems(FixedUpdate, (enemy_movement, enemy_fire, bullet_movement))
         .add_systems(
             FixedUpdate,
             (
+                // Player
+                player_movement,
+                player_fire,
+                // Enemies
+                enemy_movement,
+                enemy_fire,
+                // Bullets
+                bullet_movement,
+                // Game rules
+                update_collider,
+                update_front_enemies,
                 enemy_bullet_collision,
                 shield_bullet_collision,
                 player_bullet_collision,
             ),
         )
-        .add_systems(Update, (update_score_text, update_hearts))
-        .run();
+        .add_systems(
+            Update,
+            (
+                // UI
+                update_score_text,
+                update_hearts,
+                // Input
+                update_player_direction,
+                update_player_fire,
+            ),
+        );
 }
 
 #[derive(Component)]
