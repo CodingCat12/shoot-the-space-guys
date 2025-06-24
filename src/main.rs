@@ -18,14 +18,32 @@ const STARTING_HP: u8 = 5;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .init_state::<GameState>()
+        .add_systems(Startup, setup)
         .add_plugins(game_plugin)
         .run();
+}
+
+fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    // Camera
+    commands.spawn(Camera2d);
+
+    // Sound effects
+    commands.insert_resource(Sfx {
+        shoot: asset_server.load("sounds/laser.ogg"),
+    });
+}
+
+#[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
+enum GameState {
+    #[default]
+    Running,
 }
 
 fn game_plugin(app: &mut App) {
     app.init_resource::<InputState>()
         .add_event::<EnemyKilled>()
-        .add_systems(Startup, setup)
+        .add_systems(OnEnter(GameState::Running), game_setup)
         .add_systems(
             FixedUpdate,
             (
@@ -43,7 +61,8 @@ fn game_plugin(app: &mut App) {
                 enemy_bullet_collision,
                 shield_bullet_collision,
                 player_bullet_collision,
-            ),
+            )
+                .run_if(in_state(GameState::Running)),
         )
         .add_systems(
             Update,
@@ -54,7 +73,8 @@ fn game_plugin(app: &mut App) {
                 // Input
                 update_player_direction,
                 update_player_fire,
-            ),
+            )
+                .run_if(in_state(GameState::Running)),
         );
 }
 
@@ -122,10 +142,7 @@ struct Sfx {
     shoot: Handle<AudioSource>,
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    // Camera
-    commands.spawn(Camera2d);
-
+fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Player
     commands.spawn((
         Transform {
@@ -244,11 +261,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         1.,
         TimerMode::Repeating,
     )));
-
-    // Sound effects
-    commands.insert_resource(Sfx {
-        shoot: asset_server.load("sounds/laser.ogg"),
-    });
 }
 
 #[derive(Event)]
