@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 
 const PLAYER_SPEED: f32 = 500.;
@@ -120,7 +122,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 
     // Enemies
-    let mut front_enemies = std::collections::HashMap::new();
+    let mut front_enemies = HashMap::new();
 
     let rows = 15;
     let cols = 10;
@@ -328,7 +330,7 @@ fn player_fire(
 }
 
 #[derive(Resource)]
-struct FrontEnemies(std::collections::HashMap<usize, usize>);
+struct FrontEnemies(HashMap<usize, usize>);
 
 #[derive(Resource)]
 struct EnemyFireTimer(Timer);
