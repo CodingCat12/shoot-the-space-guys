@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 use bevy::prelude::*;
 
 const PLAYER_SPEED: f32 = 500.;
@@ -557,8 +558,6 @@ fn update_score_text(score: Res<Score>, mut query: Query<&mut Text, With<ScoreTe
         **text = format!("Score: {value}");
     }
 }
-
-use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 
 fn enemy_bullet_collision(
     mut commands: Commands,
