@@ -17,6 +17,8 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .init_resource::<InputState>()
+        .add_event::<EnemyKilled>()
+        .add_systems(FixedUpdate, update_front_enemies)
         .add_systems(Startup, setup)
         .add_systems(Update, update_collider)
         .add_systems(FixedUpdate, (player_movement, player_fire))
@@ -40,8 +42,11 @@ struct Player;
 #[derive(Component)]
 struct Enemy;
 
-#[derive(Component)]
-struct EnemyRow(usize);
+#[derive(Component, Clone, Copy, Debug)]
+struct Position {
+    row: usize,
+    col: usize,
+}
 
 #[derive(Resource)]
 enum EnemyDirection {
@@ -115,11 +120,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 
     // Enemies
+    let mut front_enemies = std::collections::HashMap::new();
+
     let rows = 15;
     let cols = 10;
     let spacing = 50.;
-    for row in 0..rows {
-        for col in 0..cols {
+    for col in 0..cols {
+        front_enemies.insert(col, 0);
+        for row in 0..rows {
             let translation = Vec3::new(
                 col as f32 * spacing - (cols as f32 / 2.) * spacing,
                 row as f32 * spacing + 100.,
@@ -132,7 +140,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     scale,
                     ..default()
                 },
-                EnemyRow(row),
+                Position { row, col },
                 Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
                 Sprite {
                     color: Color::srgb(1., 0., 0.),
@@ -142,6 +150,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ));
         }
     }
+
+    commands.insert_resource(FrontEnemies(front_enemies));
 
     // HP
     commands.insert_resource(Hp(STARTING_HP));
@@ -219,6 +229,32 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+#[derive(Event)]
+struct EnemyKilled(Position);
+
+fn update_front_enemies(
+    query: Query<&Position, With<Enemy>>,
+    mut front_enemies: ResMut<FrontEnemies>,
+    mut event_reader: EventReader<EnemyKilled>,
+) {
+    for &EnemyKilled(Position { col, row }) in event_reader.read() {
+        let front_row = query
+            .iter()
+            // Exclude killed enemy if it's still present in this frame
+            .filter_map(|p| (p.col == col && p.row != row).then_some(p.row))
+            .min();
+
+        match front_row {
+            Some(row) => {
+                front_enemies.0.insert(col, row);
+            }
+            None => {
+                front_enemies.0.remove(&col);
+            }
+        }
+    }
+}
+
 #[derive(Component)]
 struct ScoreText;
 
@@ -292,28 +328,30 @@ fn player_fire(
 }
 
 #[derive(Resource)]
+struct FrontEnemies(std::collections::HashMap<usize, usize>);
+
+#[derive(Resource)]
 struct EnemyFireTimer(Timer);
 
 fn enemy_fire(
     time: Res<Time<Fixed>>,
     mut fire_timer: ResMut<EnemyFireTimer>,
     mut commands: Commands,
-    query: Query<(&Transform, &EnemyRow), With<Enemy>>,
+    query: Query<(&Transform, &Position), With<Enemy>>,
+    front_enemies: Res<FrontEnemies>,
 ) {
     fire_timer.0.tick(time.delta());
 
     if fire_timer.0.finished() {
-        for transform in query
-            .iter()
-            .enumerate()
-            .filter_map(|(i, (transform, row))| {
-                if row.0 == 0 && i % 2 == 0 {
-                    Some(transform)
-                } else {
-                    None
-                }
-            })
-        {
+        for (transform, Position { row, col }) in query {
+            if front_enemies
+                .0
+                .get(col)
+                .is_none_or(|front_row| front_row != row)
+            {
+                continue;
+            }
+
             let translation = transform.translation - Vec3::new(0., 15., 0.);
             let scale = Vec3::splat(5.);
             commands.spawn((
@@ -398,16 +436,21 @@ use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 
 fn enemy_bullet_collision(
     mut commands: Commands,
-    bullet_query: Query<(Entity, &Collider), With<Bullet>>,
-    enemy_query: Query<(Entity, &Collider), With<Enemy>>,
+    bullet_query: Query<(Entity, &Collider, &Bullet)>,
+    enemy_query: Query<(Entity, &Collider, &Position), With<Enemy>>,
+    mut event_writer: EventWriter<EnemyKilled>,
     mut score: ResMut<Score>,
 ) {
-    for (bullet_entity, Collider(bullet_aabb)) in bullet_query {
-        for (enemy_entity, Collider(enemy_aabb)) in enemy_query {
+    for (bullet_entity, Collider(bullet_aabb), _) in bullet_query
+        .iter()
+        .filter(|(_, _, b)| !matches!(b, Bullet::Enemy))
+    {
+        for (enemy_entity, Collider(enemy_aabb), &position) in enemy_query {
             if bullet_aabb.intersects(enemy_aabb) {
                 score.0 += 1;
                 commands.entity(bullet_entity).despawn();
                 commands.entity(enemy_entity).despawn();
+                event_writer.write(EnemyKilled(position));
                 break;
             }
         }
