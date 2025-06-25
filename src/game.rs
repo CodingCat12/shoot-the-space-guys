@@ -198,35 +198,6 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
     // HP
     commands.insert_resource(Hp(STARTING_HP));
 
-    // HP Visualisation
-    commands
-        .spawn((
-            Node {
-                display: Display::Flex,
-                flex_direction: FlexDirection::Row,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::FlexStart,
-                top: Val::Px(20.0),
-                padding: UiRect::all(Val::Px(4.0)),
-                ..default()
-            },
-            OnGameScreen,
-        ))
-        .with_children(|parent| {
-            for x in 1..=STARTING_HP {
-                parent.spawn((
-                    Node {
-                        margin: UiRect::all(Val::Px(4.0)),
-                        width: Val::Px(64.0),
-                        height: Val::Px(64.0),
-                        ..default()
-                    },
-                    ImageNode::new(assets.sprite_heart.clone()),
-                    Heart { number: x },
-                ));
-            }
-        });
-
     // Shields
     let cols = 5;
     let spacing = 100.;
@@ -256,18 +227,6 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
     // Score
     commands.insert_resource(Score(0));
 
-    // Score text
-    commands.spawn((
-        Text::default(),
-        TextFont {
-            font_size: 32.0,
-            font: assets.font_press_start.clone(),
-            ..default()
-        },
-        ScoreText,
-        OnGameScreen,
-    ));
-
     commands.insert_resource(EnemyDirection(Direction::Right));
 
     // Fire timers
@@ -279,6 +238,60 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
         1.,
         TimerMode::Repeating,
     )));
+
+    // UI
+    commands
+        .spawn((
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::FlexStart,
+                align_items: AlignItems::FlexStart,
+                position_type: PositionType::Absolute,
+                left: Val::Px(20.0),
+                top: Val::Px(20.0),
+                padding: UiRect::all(Val::Px(4.0)),
+                ..default()
+            },
+            OnGameScreen,
+        ))
+        .with_children(|parent| {
+            // Score text
+            parent.spawn((
+                Text::default(),
+                TextFont {
+                    font_size: 32.0,
+                    font: assets.font_press_start.clone(),
+                    ..default()
+                },
+                ScoreText,
+            ));
+
+            // HP Visualisation
+            parent
+                .spawn((Node {
+                    display: Display::Flex,
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::FlexStart,
+                    align_items: AlignItems::FlexStart,
+                    padding: UiRect::all(Val::Px(4.0)),
+                    ..default()
+                },))
+                .with_children(|parent| {
+                    for x in 1..=STARTING_HP {
+                        parent.spawn((
+                            Node {
+                                margin: UiRect::all(Val::Px(4.0)),
+                                width: Val::Px(64.0),
+                                height: Val::Px(64.0),
+                                ..default()
+                            },
+                            ImageNode::new(assets.sprite_heart.clone()),
+                            Heart { number: x },
+                        ));
+                    }
+                });
+        });
 }
 
 #[derive(Event)]
