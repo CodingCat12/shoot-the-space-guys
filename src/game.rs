@@ -199,21 +199,33 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
     commands.insert_resource(Hp(STARTING_HP));
 
     // HP Visualisation
-    for x in 1..=STARTING_HP {
-        commands.spawn((
-            Transform {
-                translation: Vec3::new(x as f32 * 64., 0., 0.),
-                scale: Vec3::splat(6.0),
+    commands
+        .spawn((
+            Node {
+                display: Display::Flex,
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::FlexStart,
+                align_items: AlignItems::FlexStart,
+                top: Val::Px(20.0),
+                padding: UiRect::all(Val::Px(4.0)),
                 ..default()
             },
-            Sprite {
-                image: assets.sprite_heart.clone(),
-                ..default()
-            },
-            Heart { number: x },
             OnGameScreen,
-        ));
-    }
+        ))
+        .with_children(|parent| {
+            for x in 1..=STARTING_HP {
+                parent.spawn((
+                    Node {
+                        margin: UiRect::all(Val::Px(4.0)),
+                        width: Val::Px(64.0),
+                        height: Val::Px(64.0),
+                        ..default()
+                    },
+                    ImageNode::new(assets.sprite_heart.clone()),
+                    Heart { number: x },
+                ));
+            }
+        });
 
     // Shields
     let cols = 5;
