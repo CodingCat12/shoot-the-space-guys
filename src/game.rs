@@ -436,7 +436,7 @@ fn enemy_movement(
     }
 }
 
-fn update_collider(mut query: Query<(&Transform, &mut Collider)>) {
+fn update_collider(mut query: Query<(&Transform, &mut Collider), Changed<Transform>>) {
     for (transform, mut collider) in &mut query {
         let half_size = collider.0.half_size();
         collider.0 = Aabb2d::new(transform.translation.truncate(), half_size);
