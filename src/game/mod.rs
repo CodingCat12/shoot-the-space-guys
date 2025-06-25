@@ -334,6 +334,7 @@ fn player_fire(
             },
             Bullet::Player,
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+            OnGameScreen,
         ));
         commands.spawn((
             AudioPlayer::new(assets.sound_shoot.clone()),
@@ -381,6 +382,7 @@ fn enemy_fire(
                 },
                 Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
                 Bullet::Enemy,
+                OnGameScreen,
             ));
         }
     }
