@@ -81,12 +81,12 @@ fn setup_ui(mut commands: Commands, assets: Res<Assets>) {
         });
 }
 
-fn update_hearts(hp: Res<Hp>, mut query: Query<(&mut Sprite, &Heart)>) {
-    for (mut sprite, &Heart { number }) in &mut query {
+fn update_hearts(hp: Res<Hp>, mut query: Query<(&mut ImageNode, &Heart)>) {
+    for (mut image, &Heart { number }) in &mut query {
         if hp.0 >= number {
-            sprite.color = Color::default();
+            image.color = Color::default();
         } else {
-            sprite.color = Color::srgba_u8(0, 0, 0, 0);
+            image.color = Color::srgba_u8(0, 0, 0, 0);
         }
     }
 }
