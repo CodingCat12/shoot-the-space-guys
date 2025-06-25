@@ -33,6 +33,8 @@ fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands
 struct Assets {
     #[asset(path = "sounds/laser.ogg")]
     sound_shoot: Handle<AudioSource>,
+    #[asset(path = "fonts/PressStart2P-Regular.ttf")]
+    font_press_start: Handle<Font>,
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]

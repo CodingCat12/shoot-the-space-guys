@@ -1,3 +1,4 @@
+use crate::Assets;
 use crate::GameState;
 use crate::despawn_screen;
 
@@ -15,7 +16,7 @@ pub fn menu_plugin(app: &mut App) {
 #[derive(Component)]
 struct OnMenu;
 
-fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_menu(mut commands: Commands, assets: Res<Assets>) {
     let button = (
         Node {
             width: Val::Percent(100.0),
@@ -42,7 +43,7 @@ fn setup_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             children![(
                 Text::new("Start Game"),
                 TextFont {
-                    font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+                    font: assets.font_press_start.clone(),
                     font_size: 25.0,
                     ..default()
                 },
