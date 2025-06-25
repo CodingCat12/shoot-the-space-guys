@@ -207,7 +207,7 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
                 ..default()
             },
             Sprite {
-                image: asset_server.load("sprites/heart.png"),
+                image: assets.sprite_heart.clone(),
                 ..default()
             },
             Heart { number: x },

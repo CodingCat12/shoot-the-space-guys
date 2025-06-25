@@ -35,6 +35,8 @@ struct Assets {
     sound_shoot: Handle<AudioSource>,
     #[asset(path = "fonts/PressStart2P-Regular.ttf")]
     font_press_start: Handle<Font>,
+    #[asset(path = "sprites/heart.png")]
+    sprite_heart: Handle<Image>,
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
