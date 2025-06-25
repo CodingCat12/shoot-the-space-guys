@@ -75,10 +75,7 @@ struct Position {
 }
 
 #[derive(Resource)]
-enum EnemyDirection {
-    Left,
-    Right,
-}
+struct EnemyDirection(Direction);
 
 #[derive(Component)]
 struct Collider(Aabb2d);
@@ -109,6 +106,20 @@ enum Direction {
     Right,
     #[default]
     None,
+}
+
+impl Direction {
+    fn flipped(&self) -> Self {
+        match *self {
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+            Direction::None => Direction::None,
+        }
+    }
+
+    fn flip(&mut self) {
+        *self = self.flipped();
+    }
 }
 
 impl From<Direction> for f32 {
@@ -234,7 +245,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         OnGameScreen,
     ));
 
-    commands.insert_resource(EnemyDirection::Right);
+    commands.insert_resource(EnemyDirection(Direction::Right));
 
     // Fire timers
     commands.insert_resource(PlayerFireTimer(Timer::from_seconds(
@@ -411,10 +422,8 @@ fn enemy_movement(
     mut direction: ResMut<EnemyDirection>,
     time: Res<Time<Fixed>>,
 ) {
-    let direction_f32 = match *direction {
-        EnemyDirection::Left => -1.,
-        EnemyDirection::Right => 1.,
-    };
+    let direction_f32 = f32::from(direction.0);
+
     let move_down = query.iter().any(|transform| {
         let new_x = transform.translation.x + direction_f32 * ENEMY_SPEED * time.delta_secs();
         !(LEFT_WALL..=RIGHT_WALL).contains(&new_x)
@@ -429,10 +438,7 @@ fn enemy_movement(
     }
 
     if move_down {
-        *direction = match *direction {
-            EnemyDirection::Left => EnemyDirection::Right,
-            EnemyDirection::Right => EnemyDirection::Left,
-        }
+        direction.0.flip();
     }
 }
 
