@@ -243,7 +243,6 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
     commands
         .spawn((
             Node {
-                display: Display::Flex,
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::FlexStart,
                 align_items: AlignItems::FlexStart,
@@ -270,8 +269,6 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
             // HP Visualisation
             parent
                 .spawn((Node {
-                    display: Display::Flex,
-                    flex_direction: FlexDirection::Row,
                     justify_content: JustifyContent::FlexStart,
                     align_items: AlignItems::FlexStart,
                     padding: UiRect::all(Val::Px(4.0)),
