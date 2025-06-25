@@ -66,7 +66,7 @@ fn button_system(
     for (interaction, mut color, mut border_color) in &mut interaction_query {
         match *interaction {
             Interaction::Pressed => {
-                game_state.set(GameState::Game);
+                game_state.set(GameState::Running);
             }
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();

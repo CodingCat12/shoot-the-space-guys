@@ -9,7 +9,7 @@ use super::Score;
 use bevy::prelude::*;
 
 pub fn ui_plugin(app: &mut App) {
-    app.add_systems(OnEnter(GameState::Game), setup_ui)
+    app.add_systems(OnEnter(GameState::Running), setup_ui)
         .add_systems(
             Update,
             (
@@ -17,7 +17,7 @@ pub fn ui_plugin(app: &mut App) {
                 update_score_text,
                 update_hearts,
             )
-                .run_if(in_state(GameState::Game)),
+                .run_if(in_state(GameState::Running)),
         );
 }
 

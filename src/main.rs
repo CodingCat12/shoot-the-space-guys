@@ -43,6 +43,6 @@ struct GameAssets {
 enum GameState {
     #[default]
     AssetLoading,
-    Game,
+    Running,
     Menu,
 }

@@ -29,7 +29,7 @@ pub fn game_plugin(app: &mut App) {
     app.add_plugins(ui::ui_plugin)
         .init_resource::<InputState>()
         .add_event::<EnemyKilled>()
-        .add_systems(OnEnter(GameState::Game), game_setup)
+        .add_systems(OnEnter(GameState::Running), game_setup)
         .add_systems(
             FixedUpdate,
             (
@@ -49,7 +49,7 @@ pub fn game_plugin(app: &mut App) {
                 shield_bullet_collision,
                 player_bullet_collision,
             )
-                .run_if(in_state(GameState::Game)),
+                .run_if(in_state(GameState::Running)),
         )
         .add_systems(
             Update,
@@ -58,9 +58,9 @@ pub fn game_plugin(app: &mut App) {
                 update_player_direction,
                 update_player_fire,
             )
-                .run_if(in_state(GameState::Game)),
+                .run_if(in_state(GameState::Running)),
         )
-        .add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>);
+        .add_systems(OnExit(GameState::Running), despawn_screen::<OnGameScreen>);
 }
 
 #[derive(Component)]
