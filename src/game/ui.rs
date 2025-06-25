@@ -1,4 +1,4 @@
-use crate::Assets;
+use crate::GameAssets;
 use crate::GameState;
 
 use super::Hp;
@@ -29,7 +29,7 @@ struct Heart {
 #[derive(Component)]
 struct ScoreText;
 
-fn setup_ui(mut commands: Commands, assets: Res<Assets>) {
+fn setup_ui(mut commands: Commands, assets: Res<GameAssets>) {
     commands
         .spawn((
             Node {

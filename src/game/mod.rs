@@ -1,6 +1,6 @@
 mod ui;
 
-use crate::Assets;
+use crate::GameAssets;
 use crate::GameState;
 use crate::despawn_screen;
 
@@ -312,7 +312,7 @@ fn player_fire(
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
-    assets: Res<Assets>,
+    assets: Res<GameAssets>,
 ) {
     fire_timer.0.tick(time.delta());
 

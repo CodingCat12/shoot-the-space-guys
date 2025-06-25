@@ -11,7 +11,7 @@ fn main() {
         .add_loading_state(
             LoadingState::new(GameState::AssetLoading)
                 .continue_to_state(GameState::Menu)
-                .load_collection::<Assets>(),
+                .load_collection::<GameAssets>(),
         )
         .add_systems(Startup, setup)
         .add_plugins((menu::menu_plugin, game::game_plugin))
@@ -30,7 +30,7 @@ fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands
 }
 
 #[derive(AssetCollection, Resource)]
-struct Assets {
+struct GameAssets {
     #[asset(path = "sounds/laser.ogg")]
     sound_shoot: Handle<AudioSource>,
     #[asset(path = "fonts/PressStart2P-Regular.ttf")]

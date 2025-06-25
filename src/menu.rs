@@ -1,4 +1,4 @@
-use crate::Assets;
+use crate::GameAssets;
 use crate::GameState;
 use crate::despawn_screen;
 
@@ -16,7 +16,7 @@ pub fn menu_plugin(app: &mut App) {
 #[derive(Component)]
 struct OnMenu;
 
-fn setup_menu(mut commands: Commands, assets: Res<Assets>) {
+fn setup_menu(mut commands: Commands, assets: Res<GameAssets>) {
     let button = (
         Node {
             width: Val::Percent(100.0),
