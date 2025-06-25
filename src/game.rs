@@ -344,7 +344,7 @@ fn player_fire(
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
-    sfx: Res<Assets>,
+    assets: Res<Assets>,
 ) {
     fire_timer.0.tick(time.delta());
 
@@ -368,7 +368,7 @@ fn player_fire(
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
         commands.spawn((
-            AudioPlayer::new(sfx.sound_shoot.clone()),
+            AudioPlayer::new(assets.sound_shoot.clone()),
             PlaybackSettings::DESPAWN.with_volume(bevy::audio::Volume::Linear(0.5)),
         ));
     }
