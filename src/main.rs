@@ -1,4 +1,5 @@
 mod game;
+mod game_over;
 mod menu;
 
 use bevy::prelude::*;
@@ -14,7 +15,11 @@ fn main() {
                 .load_collection::<GameAssets>(),
         )
         .add_systems(Startup, setup)
-        .add_plugins((menu::menu_plugin, game::game_plugin))
+        .add_plugins((
+            menu::menu_plugin,
+            game::game_plugin,
+            game_over::game_over_plugin,
+        ))
         .run();
 }
 
@@ -45,4 +50,5 @@ enum GameState {
     AssetLoading,
     Running,
     Menu,
+    GameOver,
 }

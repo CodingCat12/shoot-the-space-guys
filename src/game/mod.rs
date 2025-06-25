@@ -472,7 +472,7 @@ fn player_bullet_collision(
     bullet_query: Query<(Entity, &Collider, &Bullet)>,
     player_query: Query<&Collider, With<Player>>,
     mut hp: ResMut<Hp>,
-    mut app_exit_writer: EventWriter<AppExit>,
+    mut state: ResMut<NextState<GameState>>,
 ) {
     if let Ok(Collider(enemy_aabb)) = player_query.single() {
         for (bullet_entity, Collider(bullet_aabb), bullet) in bullet_query {
@@ -484,7 +484,7 @@ fn player_bullet_collision(
                 hp.0 -= 1;
 
                 if hp.0 == 0 {
-                    app_exit_writer.write(AppExit::Success);
+                    state.set(GameState::GameOver);
                 }
 
                 commands.entity(bullet_entity).despawn();
