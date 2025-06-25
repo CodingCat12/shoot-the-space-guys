@@ -1,3 +1,5 @@
+mod ui;
+
 use crate::Assets;
 use crate::GameState;
 use crate::despawn_screen;
@@ -24,7 +26,8 @@ const STARTING_HP: u8 = 5;
 struct OnGameScreen;
 
 pub fn game_plugin(app: &mut App) {
-    app.init_resource::<InputState>()
+    app.add_plugins(ui::ui_plugin)
+        .init_resource::<InputState>()
         .add_event::<EnemyKilled>()
         .add_systems(OnEnter(GameState::Game), game_setup)
         .add_systems(
@@ -51,9 +54,6 @@ pub fn game_plugin(app: &mut App) {
         .add_systems(
             Update,
             (
-                // UI
-                update_score_text,
-                update_hearts,
                 // Input
                 update_player_direction,
                 update_player_fire,
@@ -143,7 +143,7 @@ impl From<Direction> for f32 {
     }
 }
 
-fn game_setup(mut commands: Commands, assets: Res<Assets>) {
+fn game_setup(mut commands: Commands) {
     // Player
     commands.spawn((
         Transform {
@@ -238,57 +238,6 @@ fn game_setup(mut commands: Commands, assets: Res<Assets>) {
         1.,
         TimerMode::Repeating,
     )));
-
-    // UI
-    commands
-        .spawn((
-            Node {
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::FlexStart,
-                align_items: AlignItems::FlexStart,
-                position_type: PositionType::Absolute,
-                left: Val::Px(20.0),
-                top: Val::Px(20.0),
-                padding: UiRect::all(Val::Px(4.0)),
-                ..default()
-            },
-            OnGameScreen,
-        ))
-        .with_children(|parent| {
-            // Score text
-            parent.spawn((
-                Text::default(),
-                TextFont {
-                    font_size: 32.0,
-                    font: assets.font_press_start.clone(),
-                    ..default()
-                },
-                ScoreText,
-            ));
-
-            // HP Visualisation
-            parent
-                .spawn((Node {
-                    justify_content: JustifyContent::FlexStart,
-                    align_items: AlignItems::FlexStart,
-                    padding: UiRect::all(Val::Px(4.0)),
-                    ..default()
-                },))
-                .with_children(|parent| {
-                    for x in 1..=STARTING_HP {
-                        parent.spawn((
-                            Node {
-                                margin: UiRect::all(Val::Px(4.0)),
-                                width: Val::Px(64.0),
-                                height: Val::Px(64.0),
-                                ..default()
-                            },
-                            ImageNode::new(assets.sprite_heart.clone()),
-                            Heart { number: x },
-                        ));
-                    }
-                });
-        });
 }
 
 #[derive(Event)]
@@ -323,9 +272,6 @@ fn update_front_enemies(
         }
     }
 }
-
-#[derive(Component)]
-struct ScoreText;
 
 #[derive(Resource)]
 struct Score(u32);
@@ -489,13 +435,6 @@ fn update_collider(mut query: Query<(&Transform, &mut Collider), Changed<Transfo
     }
 }
 
-fn update_score_text(score: Res<Score>, mut query: Query<&mut Text, With<ScoreText>>) {
-    if let Ok(mut text) = query.single_mut() {
-        let value = score.0;
-        **text = format!("Score: {value}");
-    }
-}
-
 fn enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Collider, &Bullet)>,
@@ -555,21 +494,6 @@ fn player_bullet_collision(
 
 #[derive(Resource)]
 struct Hp(u8);
-
-#[derive(Component)]
-struct Heart {
-    number: u8,
-}
-
-fn update_hearts(hp: Res<Hp>, mut query: Query<(&mut Sprite, &Heart)>) {
-    for (mut sprite, &Heart { number }) in &mut query {
-        if hp.0 >= number {
-            sprite.color = Color::default();
-        } else {
-            sprite.color = Color::srgba_u8(0, 0, 0, 0);
-        }
-    }
-}
 
 fn shield_bullet_collision(
     mut commands: Commands,
