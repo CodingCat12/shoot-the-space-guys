@@ -2,24 +2,25 @@ mod game;
 mod menu;
 
 use bevy::prelude::*;
+use bevy_asset_loader::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .init_state::<GameState>()
+        .add_loading_state(
+            LoadingState::new(GameState::AssetLoading)
+                .continue_to_state(GameState::Menu)
+                .load_collection::<Assets>(),
+        )
         .add_systems(Startup, setup)
         .add_plugins((menu::menu_plugin, game::game_plugin))
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     // Camera
     commands.spawn(Camera2d);
-
-    // Sound effects
-    commands.insert_resource(Sfx {
-        shoot: asset_server.load("sounds/laser.ogg"),
-    });
 }
 
 fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands: Commands) {
@@ -28,14 +29,16 @@ fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands
     }
 }
 
-#[derive(Resource)]
-struct Sfx {
+#[derive(AssetCollection, Resource)]
+struct Assets {
+    #[asset(path = "sounds/laser.ogg")]
     shoot: Handle<AudioSource>,
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
 enum GameState {
-    Game,
     #[default]
+    AssetLoading,
+    Game,
     Menu,
 }

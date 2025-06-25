@@ -1,5 +1,5 @@
+use crate::Assets;
 use crate::GameState;
-use crate::Sfx;
 use crate::despawn_screen;
 
 use std::collections::HashMap;
@@ -344,7 +344,7 @@ fn player_fire(
     mut fire_timer: ResMut<PlayerFireTimer>,
     mut commands: Commands,
     query: Query<&Transform, With<Player>>,
-    sfx: Res<Sfx>,
+    sfx: Res<Assets>,
 ) {
     fire_timer.0.tick(time.delta());
 
