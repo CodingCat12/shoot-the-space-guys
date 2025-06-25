@@ -143,7 +143,7 @@ impl From<Direction> for f32 {
     }
 }
 
-fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn game_setup(mut commands: Commands, assets: Res<Assets>) {
     // Player
     commands.spawn((
         Transform {
@@ -249,7 +249,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         Text::default(),
         TextFont {
             font_size: 32.0,
-            font: asset_server.load("fonts/PressStart2P-Regular.ttf"),
+            font: assets.font_press_start.clone(),
             ..default()
         },
         ScoreText,
