@@ -39,6 +39,7 @@ pub fn game_plugin(app: &mut App) {
                 // Bullets
                 bullet_movement,
                 // Game rules
+                update_score,
                 update_collider,
                 update_front_enemies,
                 enemy_bullet_collision,
@@ -65,8 +66,18 @@ pub fn game_plugin(app: &mut App) {
 #[derive(Component)]
 struct Player;
 
-#[derive(Component)]
-struct Enemy;
+#[derive(Component, Clone, Copy)]
+enum Enemy {
+    Normal,
+}
+
+impl Enemy {
+    fn points(self) -> u32 {
+        match self {
+            Enemy::Normal => 10,
+        }
+    }
+}
 
 #[derive(Component, Clone, Copy, Debug)]
 struct Position {
@@ -176,7 +187,7 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                     color: Color::srgb(1., 0., 0.),
                     ..default()
                 },
-                Enemy,
+                Enemy::Normal,
                 OnGameScreen,
             ));
         }
@@ -259,14 +270,21 @@ fn game_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 #[derive(Event)]
-struct EnemyKilled(Position);
+struct EnemyKilled {
+    position: Position,
+    enemy: Enemy,
+}
 
 fn update_front_enemies(
     query: Query<&Position, With<Enemy>>,
     mut front_enemies: ResMut<FrontEnemies>,
     mut event_reader: EventReader<EnemyKilled>,
 ) {
-    for &EnemyKilled(Position { col, row }) in event_reader.read() {
+    for &EnemyKilled {
+        position: Position { col, row },
+        ..
+    } in event_reader.read()
+    {
         let front_row = query
             .iter()
             // Exclude killed enemy if it's still present in this frame
@@ -459,23 +477,30 @@ fn update_score_text(score: Res<Score>, mut query: Query<&mut Text, With<ScoreTe
 fn enemy_bullet_collision(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Collider, &Bullet)>,
-    enemy_query: Query<(Entity, &Collider, &Position), With<Enemy>>,
+    enemy_query: Query<(Entity, &Collider, &Position, &Enemy)>,
     mut event_writer: EventWriter<EnemyKilled>,
-    mut score: ResMut<Score>,
 ) {
     for (bullet_entity, Collider(bullet_aabb), _) in bullet_query
         .iter()
         .filter(|(_, _, b)| !matches!(b, Bullet::Enemy))
     {
-        for (enemy_entity, Collider(enemy_aabb), &position) in enemy_query {
+        for (enemy_entity, Collider(enemy_aabb), &position, &enemy_kind) in enemy_query {
             if bullet_aabb.intersects(enemy_aabb) {
-                score.0 += 1;
                 commands.entity(bullet_entity).despawn();
                 commands.entity(enemy_entity).despawn();
-                event_writer.write(EnemyKilled(position));
+                event_writer.write(EnemyKilled {
+                    position,
+                    enemy: enemy_kind,
+                });
                 break;
             }
         }
+    }
+}
+
+fn update_score(mut event_reader: EventReader<EnemyKilled>, mut score: ResMut<Score>) {
+    for EnemyKilled { enemy, .. } in event_reader.read() {
+        score.0 += enemy.points();
     }
 }
 
