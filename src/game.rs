@@ -368,7 +368,7 @@ fn player_fire(
             Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
         ));
         commands.spawn((
-            AudioPlayer::new(sfx.shoot.clone()),
+            AudioPlayer::new(sfx.sound_shoot.clone()),
             PlaybackSettings::DESPAWN.with_volume(bevy::audio::Volume::Linear(0.5)),
         ));
     }

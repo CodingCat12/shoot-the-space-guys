@@ -32,7 +32,7 @@ fn despawn_screen<T: Component>(to_despawn: Query<Entity, With<T>>, mut commands
 #[derive(AssetCollection, Resource)]
 struct Assets {
     #[asset(path = "sounds/laser.ogg")]
-    shoot: Handle<AudioSource>,
+    sound_shoot: Handle<AudioSource>,
 }
 
 #[derive(Clone, Copy, Default, Eq, PartialEq, Debug, Hash, States)]
