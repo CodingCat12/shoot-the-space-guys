@@ -124,18 +124,18 @@ fn button_style(
 
 #[allow(clippy::type_complexity)]
 fn button_interaction(
-    mut try_again_button: Query<&Interaction, (Changed<Interaction>, With<TryAgainButton>)>,
-    mut exit_button: Query<&Interaction, (Changed<Interaction>, With<ExitButton>)>,
+    try_again_button: Query<&Interaction, (Changed<Interaction>, With<TryAgainButton>)>,
+    exit_button: Query<&Interaction, (Changed<Interaction>, With<ExitButton>)>,
     mut game_state: ResMut<NextState<GameState>>,
     mut event_writer: EventWriter<AppExit>,
 ) {
-    for interaction in &mut try_again_button {
+    for interaction in try_again_button {
         if *interaction == Interaction::Pressed {
             game_state.set(GameState::Running);
         }
     }
 
-    for interaction in &mut exit_button {
+    for interaction in exit_button {
         if *interaction == Interaction::Pressed {
             event_writer.write(AppExit::Success);
         }
