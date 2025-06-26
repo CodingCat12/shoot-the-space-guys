@@ -41,66 +41,42 @@ fn setup_game_over_screen(mut commands: Commands, assets: Res<GameAssets>) {
                 ..default()
             },
             children![
-                (
-                    TryAgainButton,
-                    Button,
-                    Node {
-                        width: Val::Px(300.0),
-                        height: Val::Px(65.0),
-                        border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        margin: UiRect::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                    BorderColor(Color::BLACK),
-                    BorderRadius::MAX,
-                    BackgroundColor(NORMAL_BUTTON),
-                    children![(
-                        Text::new("Try again"),
-                        TextFont {
-                            font: assets.font_press_start.clone(),
-                            font_size: 25.0,
-                            ..default()
-                        },
-                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                        TextShadow::default(),
-                    )]
-                ),
-                (
-                    ExitButton,
-                    Button,
-                    Node {
-                        width: Val::Px(300.0),
-                        height: Val::Px(65.0),
-                        border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
-                        justify_content: JustifyContent::Center,
-                        // vertically center child text
-                        align_items: AlignItems::Center,
-                        margin: UiRect::all(Val::Px(4.0)),
-                        ..default()
-                    },
-                    BorderColor(Color::BLACK),
-                    BorderRadius::MAX,
-                    BackgroundColor(NORMAL_BUTTON),
-                    children![(
-                        Text::new("Exit"),
-                        TextFont {
-                            font: assets.font_press_start.clone(),
-                            font_size: 25.0,
-                            ..default()
-                        },
-                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                        TextShadow::default(),
-                    )]
-                )
+                (TryAgainButton, button("Try Again", &assets)),
+                (ExitButton, button("Exit", &assets))
             ],
         ),
         OnGameOverScreen,
     ));
+}
+
+fn button(name: &str, assets: &GameAssets) -> impl Bundle {
+    (
+        Button,
+        Node {
+            width: Val::Px(300.0),
+            height: Val::Px(65.0),
+            border: UiRect::all(Val::Px(5.0)),
+            // horizontally center child text
+            justify_content: JustifyContent::Center,
+            // vertically center child text
+            align_items: AlignItems::Center,
+            margin: UiRect::all(Val::Px(4.0)),
+            ..default()
+        },
+        BorderColor(Color::BLACK),
+        BorderRadius::MAX,
+        BackgroundColor(NORMAL_BUTTON),
+        children![(
+            Text::new(name),
+            TextFont {
+                font: assets.font_press_start.clone(),
+                font_size: 25.0,
+                ..default()
+            },
+            TextColor(Color::srgb(0.9, 0.9, 0.9)),
+            TextShadow::default(),
+        )],
+    )
 }
 
 #[allow(clippy::type_complexity)]
