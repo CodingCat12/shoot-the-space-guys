@@ -13,11 +13,14 @@ pub fn game_over_plugin(app: &mut App) {
             Update,
             (button_style, button_interaction).run_if(in_state(GameState::GameOver)),
         )
-        .add_systems(OnExit(GameState::GameOver), despawn_screen::<OnMenu>);
+        .add_systems(
+            OnExit(GameState::GameOver),
+            despawn_screen::<OnGameOverScreen>,
+        );
 }
 
 #[derive(Component)]
-struct OnMenu;
+struct OnGameOverScreen;
 
 #[derive(Component)]
 struct TryAgainButton;
@@ -96,7 +99,7 @@ fn setup_game_over_screen(mut commands: Commands, assets: Res<GameAssets>) {
                 )
             ],
         ),
-        OnMenu,
+        OnGameOverScreen,
     ));
 }
 
