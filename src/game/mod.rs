@@ -9,6 +9,8 @@ use std::collections::HashMap;
 use bevy::math::bounding::{Aabb2d, BoundingVolume, IntersectsVolume};
 use bevy::prelude::*;
 
+use rand::prelude::*;
+
 const PLAYER_SPEED: f32 = 500.;
 const PLAYER_BULLET_SPEED: f32 = 800.;
 const ENEMY_BULLET_SPEED: f32 = 500.;
@@ -143,6 +145,9 @@ impl From<Direction> for f32 {
     }
 }
 
+#[derive(Resource)]
+struct MyRng(StdRng);
+
 fn game_setup(mut commands: Commands) {
     // Player
     commands.spawn((
@@ -238,6 +243,9 @@ fn game_setup(mut commands: Commands) {
         1.,
         TimerMode::Repeating,
     )));
+
+    // RNG
+    commands.insert_resource(MyRng(StdRng::from_os_rng()));
 }
 
 #[derive(Event)]
@@ -355,36 +363,38 @@ fn enemy_fire(
     mut commands: Commands,
     query: Query<(&Transform, &Position), With<Enemy>>,
     front_enemies: Res<FrontEnemies>,
+    mut rng: ResMut<MyRng>,
 ) {
     fire_timer.0.tick(time.delta());
 
-    if fire_timer.0.finished() {
-        for (transform, Position { row, col }) in query {
-            if front_enemies
-                .0
-                .get(col)
-                .is_none_or(|front_row| front_row != row)
-            {
-                continue;
-            }
-
-            let translation = transform.translation - Vec3::new(0., 15., 0.);
-            let scale = Vec3::splat(5.);
-            commands.spawn((
-                Transform {
-                    translation,
-                    scale,
-                    ..default()
-                },
-                Sprite {
-                    color: Color::srgb(0.5, 1., 0.5),
-                    ..default()
-                },
-                Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
-                Bullet::Enemy,
-                OnGameScreen,
-            ));
-        }
+    if fire_timer.0.finished()
+        && let Some(transform) = query
+            .iter()
+            .filter_map(|(transform, Position { row, col })| {
+                front_enemies
+                    .0
+                    .get(col)
+                    .is_some_and(|front_row| row == front_row)
+                    .then_some(transform)
+            })
+            .choose(&mut rng.0)
+    {
+        let translation = transform.translation - Vec3::new(0., 15., 0.);
+        let scale = Vec3::splat(5.);
+        commands.spawn((
+            Transform {
+                translation,
+                scale,
+                ..default()
+            },
+            Sprite {
+                color: Color::srgb(0.5, 1., 0.5),
+                ..default()
+            },
+            Collider(Aabb2d::new(translation.truncate(), scale.truncate() / 2.)),
+            Bullet::Enemy,
+            OnGameScreen,
+        ));
     }
 }
 
