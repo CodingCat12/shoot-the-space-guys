@@ -112,7 +112,7 @@ fn button_style(
 ) {
     for (&interaction, mut color, mut border_color) in &mut interaction_query {
         match interaction {
-            Interaction::Hovered => {
+            Interaction::Hovered | Interaction::Pressed => {
                 *color = HOVERED_BUTTON.into();
                 border_color.0 = Color::WHITE;
             }
@@ -120,7 +120,6 @@ fn button_style(
                 *color = NORMAL_BUTTON.into();
                 border_color.0 = Color::BLACK;
             }
-            _ => {}
         }
     }
 }
