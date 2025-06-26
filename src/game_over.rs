@@ -107,8 +107,8 @@ fn button_style(
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color, mut border_color) in &mut interaction_query {
-        match *interaction {
+    for (&interaction, mut color, mut border_color) in &mut interaction_query {
+        match interaction {
             Interaction::Hovered => {
                 *color = HOVERED_BUTTON.into();
                 border_color.0 = Color::WHITE;
@@ -129,14 +129,14 @@ fn button_interaction(
     mut game_state: ResMut<NextState<GameState>>,
     mut event_writer: EventWriter<AppExit>,
 ) {
-    for interaction in try_again_button {
-        if *interaction == Interaction::Pressed {
+    for &interaction in try_again_button {
+        if interaction == Interaction::Pressed {
             game_state.set(GameState::Running);
         }
     }
 
-    for interaction in exit_button {
-        if *interaction == Interaction::Pressed {
+    for &interaction in exit_button {
+        if interaction == Interaction::Pressed {
             event_writer.write(AppExit::Success);
         }
     }
