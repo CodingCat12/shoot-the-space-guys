@@ -17,42 +17,57 @@ pub fn menu_plugin(app: &mut App) {
 struct OnMenu;
 
 fn setup_menu(mut commands: Commands, assets: Res<GameAssets>) {
-    let button = (
-        Node {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::Center,
-            ..default()
-        },
-        children![(
-            Button,
+    commands.spawn((
+        (
             Node {
-                width: Val::Px(300.0),
-                height: Val::Px(65.0),
-                border: UiRect::all(Val::Px(5.0)),
-                // horizontally center child text
-                justify_content: JustifyContent::Center,
-                // vertically center child text
+                flex_direction: FlexDirection::Column,
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
                 align_items: AlignItems::Center,
+                justify_content: JustifyContent::SpaceEvenly,
                 ..default()
             },
-            BorderColor(Color::BLACK),
-            BorderRadius::MAX,
-            BackgroundColor(NORMAL_BUTTON),
-            children![(
-                Text::new("Start Game"),
-                TextFont {
-                    font: assets.font_press_start.clone(),
-                    font_size: 25.0,
-                    ..default()
-                },
-                TextColor(Color::srgb(0.9, 0.9, 0.9)),
-                TextShadow::default(),
-            )]
-        )],
-    );
-    commands.spawn((button, OnMenu));
+            children![
+                (
+                    Text::new("SHOOT THE SPACE GUYS"),
+                    TextFont {
+                        font: assets.font_press_start.clone(),
+                        font_size: 40.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                    TextShadow::default(),
+                ),
+                (
+                    Button,
+                    Node {
+                        width: Val::Px(300.0),
+                        height: Val::Px(65.0),
+                        border: UiRect::all(Val::Px(5.0)),
+                        // horizontally center child text
+                        justify_content: JustifyContent::Center,
+                        // vertically center child text
+                        align_items: AlignItems::Center,
+                        ..default()
+                    },
+                    BorderColor(Color::BLACK),
+                    BorderRadius::MAX,
+                    BackgroundColor(NORMAL_BUTTON),
+                    children![(
+                        Text::new("Start Game"),
+                        TextFont {
+                            font: assets.font_press_start.clone(),
+                            font_size: 25.0,
+                            ..default()
+                        },
+                        TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                        TextShadow::default(),
+                    )]
+                )
+            ],
+        ),
+        OnMenu,
+    ));
 }
 
 #[allow(clippy::type_complexity)]
