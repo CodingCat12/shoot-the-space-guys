@@ -22,6 +22,9 @@ const RIGHT_WALL: f32 = 400.;
 const BOTTOM_WALL: f32 = -300.;
 const TOP_WALL: f32 = 300.;
 
+const PLAYER_FIRE_RATE: f32 = 10.0;
+const ENEMY_FIRE_RATE: f32 = 4.0;
+
 const STARTING_HP: u8 = 5;
 
 #[derive(Component)]
@@ -236,11 +239,11 @@ fn game_setup(mut commands: Commands) {
 
     // Fire timers
     commands.insert_resource(PlayerFireTimer(Timer::from_seconds(
-        0.1,
+        1.0 / PLAYER_FIRE_RATE,
         TimerMode::Repeating,
     )));
     commands.insert_resource(EnemyFireTimer(Timer::from_seconds(
-        0.25,
+        1.0 / ENEMY_FIRE_RATE,
         TimerMode::Repeating,
     )));
 
