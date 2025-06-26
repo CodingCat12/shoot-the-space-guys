@@ -7,7 +7,17 @@ use bevy_asset_loader::prelude::*;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugins(
+            DefaultPlugins
+                .set(ImagePlugin::default_nearest())
+                .set(WindowPlugin {
+                    primary_window: Some(Window {
+                        title: "Shoot the Space Guys".to_string(),
+                        ..default()
+                    }),
+                    ..default()
+                }),
+        )
         .init_state::<GameState>()
         .add_loading_state(
             LoadingState::new(GameState::AssetLoading)
