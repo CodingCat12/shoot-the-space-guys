@@ -240,7 +240,7 @@ fn game_setup(mut commands: Commands) {
         TimerMode::Repeating,
     )));
     commands.insert_resource(EnemyFireTimer(Timer::from_seconds(
-        1.,
+        0.25,
         TimerMode::Repeating,
     )));
 
