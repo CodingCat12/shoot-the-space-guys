@@ -132,15 +132,15 @@ fn button_interaction(
     mut game_state: ResMut<NextState<GameState>>,
     mut event_writer: EventWriter<AppExit>,
 ) {
-    for &interaction in try_again_button {
-        if interaction == Interaction::Pressed {
-            game_state.set(GameState::Running);
-        }
+    if let Ok(&interaction) = try_again_button.single()
+        && interaction == Interaction::Pressed
+    {
+        game_state.set(GameState::Running);
     }
 
-    for &interaction in exit_button {
-        if interaction == Interaction::Pressed {
-            event_writer.write(AppExit::Success);
-        }
+    if let Ok(&interaction) = exit_button.single()
+        && interaction == Interaction::Pressed
+    {
+        event_writer.write(AppExit::Success);
     }
 }
