@@ -58,12 +58,12 @@ fn setup_ui(mut commands: Commands, assets: Res<GameAssets>) {
 
             // HP Visualisation
             parent
-                .spawn((Node {
+                .spawn(Node {
                     justify_content: JustifyContent::FlexStart,
                     align_items: AlignItems::FlexStart,
                     padding: UiRect::all(Val::Px(4.0)),
                     ..default()
-                },))
+                })
                 .with_children(|parent| {
                     for x in 1..=STARTING_HP {
                         parent.spawn((
